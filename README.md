@@ -1,4 +1,7 @@
-Multi-Threaded Java Socket Chat ApplicationA high-concurrency, multi-threaded client-server chat application built in Java using core TCP Sockets (java.net) and Threading.This system allows multiple client instances to connect concurrently to a central server, broadcast real-time messages to all active participants, and handle incoming/outgoing message streams independently without UI/thread blocking.🏗️ Architecture & How It Works                        ┌──────────────────┐
+Multi-Threaded Java Socket Chat Application
+
+A high-concurrency, multi-threaded client-server chat application built in Java using core TCP Sockets (java.net) and Threading.This system allows multiple client instances to connect concurrently to a central server, broadcast real-time messages to all active participants, and handle incoming/outgoing message streams independently without UI/thread blocking.🏗️ Architecture & How It Works
+                        ┌──────────────────┐
                         │    ChatServer    │
                         │   (Port 12345)   │
                         └────────┬─────────┘
