@@ -1,58 +1,246 @@
 Multi-Threaded Java Socket Chat Application
 
-A high-concurrency, multi-threaded client-server chat application built in Java using core TCP Sockets (java.net) and Threading.This system allows multiple client instances to connect concurrently to a central server, broadcast real-time messages to all active participants, and handle incoming/outgoing message streams independently without UI/thread blocking.🏗️ Architecture & How It Works
-                        ┌──────────────────┐
-                        │    ChatServer    │
-                        │   (Port 12345)   │
-                        └────────┬─────────┘
-                                 │
-           ┌─────────────────────┼─────────────────────┐
-           ▼                     ▼                     ▼
-┌────────────────────┐┌────────────────────┐┌────────────────────┐
-│   ClientHandler 1  ││   ClientHandler 2  ││   ClientHandler N  │
-│  (Thread Worker)   ││  (Thread Worker)   ││  (Thread Worker)   │
-└──────────┬─────────┘└──────────┬─────────┘└──────────┬─────────┘
-           │                     │                     │
-           │ TCP Socket          │ TCP Socket          │ TCP Socket
-           ▼                     ▼                     ▼
-┌────────────────────┐┌────────────────────┐┌────────────────────┐
-│    ChatClient 1    ││    ChatClient 2    ││    ChatClient N    │
-└────────────────────┘└────────────────────┘└────────────────────┘
-1. ChatServer Architecture:
-Listening Thread: Runs a continuous ServerSocket.accept() loop on port 12345.
- Thread-per-Client Pattern: Spawns a dedicated ClientHandler thread for every incoming connection request.
- Concurrent Registry: Maintains active output streams using a thread-safe set (ConcurrentHashMap.newKeySet()) to prevent race conditions during message broadcasting.
- Broadcasting Logic: Iterates through the active client set and routes incoming messages to all connected clients except the original sender.
+A high-concurrency, multi-threaded client-server chat application built using Java Core TCP Sockets (java.net) and Multithreading.
 
+This application allows multiple clients to connect simultaneously to a central server, exchange real-time messages, and communicate through a centralized broadcasting system. It uses independent threads for handling client connections and receiving messages to ensure smooth, non-blocking communication.
+
+🏗️ Architecture & How It Works
+
+The application follows a Client-Server Architecture using TCP socket communication.
+
+text
+                       ┌──────────────────┐
+                       │    ChatServer    │
+                       │   (Port 12345)   │
+                       └────────┬─────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          ▼                     ▼                     ▼
+┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+│  ClientHandler 1  │ │  ClientHandler 2  │ │  ClientHandler N  │
+│  (Thread Worker)  │ │  (Thread Worker)  │ │  (Thread Worker)  │
+└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
+          │                     │                     │
+          │ TCP Socket          │ TCP Socket          │ TCP Socket
+          ▼                     ▼                     ▼
+┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+│    ChatClient 1   │ │    ChatClient 2   │ │    ChatClient N   │
+└───────────────────┘ └───────────────────┘ └───────────────────┘
+
+1. ChatServer Architecture
+Listening Thread: Continuously listens for incoming client connections using ServerSocket.accept() on port 12345.
+Thread-per-Client Pattern: Creates a dedicated ClientHandler thread for every incoming client connection.
+Concurrent Client Registry: Uses ConcurrentHashMap.newKeySet() to maintain active client connections safely across multiple threads.
+Message Broadcasting: Receives messages from clients and broadcasts them to all other connected clients, excluding the original sender.
+Connection Management: Handles client disconnections and removes inactive clients from the active connection registry.
 2. ChatClient Architecture
-Dual-Thread Execution:
-Main Thread: Captures user input synchronously from standard console input (System.in) and pushes formatted messages down the socket stream.
-Daemon Receiver Thread: Listens asynchronously to incoming server socket data (BufferedReader.readLine()) and renders incoming messages immediately without delaying user input.
 
-📁 Repository StructureKeep both Java source files inside the same project folder:Plaintextchat-application/
-├── ChatServer.java   # Server entry point & thread worker logic
-├── ChatClient.java   # Client entry point & dual-thread stream handler
-└── README.md         # Documentation
+The client application uses a dual-thread execution model.
 
-⚙️ PrerequisitesJava Development Kit (JDK): Version 8 or higher (java -version).Terminal / CLI: Multiple terminal windows or tabs to simulate client interactions.🚀 Quick Start Guide
-Step 1: Clone or Set Up FilesCreate a workspace directory and place both ChatServer.java and ChatClient.java inside it.
-Step 2: Compile Java Source CodeOpen your terminal inside the project directory and compile both files using javac:Bashjavac ChatServer.java ChatClient.java
-This generates two bytecode files (ChatServer.class and ChatClient.class) in the same directory.
-Step 3: Run the ServerLaunch the server instance first so it can open port 12345:Bashjava ChatServer
-Output:PlaintextChat Server starting on port 12345...
-Step 4: Connect Multiple ClientsOpen separate terminal windows or tabs, navigate to the same project directory, and execute the client program in each:Terminal Window 1 (User: Alice):Bashjava ChatClient
-PlaintextConnecting to chat server at 127.0.0.1:12345
+Main Thread: Reads user input synchronously from the console using System.in and sends messages to the server through the socket output stream.
+Receiver Thread: A separate daemon thread continuously listens for incoming messages using BufferedReader.readLine() and displays them immediately.
+Non-Blocking Communication: Allows users to type messages while incoming messages are received independently.
+Graceful Disconnection: Supports the exit command to disconnect from the chat server safely.
+📁 Project Structure
+
+Keep both Java source files inside the same project folder.
+
+text
+chat-application/
+│
+├── ChatServer.java    # Server entry point and client handler logic
+├── ChatClient.java    # Client entry point and message receiver
+└── README.md          # Project documentation
+
+⚙️ Prerequisites
+
+Before running the application, ensure you have the following installed:
+
+Java Development Kit (JDK): Version 8 or higher.
+Terminal / Command Prompt: To compile and execute Java programs.
+Multiple Terminal Windows: To simulate multiple chat clients.
+
+Verify your Java installation:
+
+bash
+java -version
+javac -version
+
+🚀 Quick Start Guide
+Step 1: Set Up the Project
+
+Create a project directory named chat-application and place both Java source files inside it.
+
+text
+chat-application/
+├── ChatServer.java
+└── ChatClient.java
+
+Step 2: Compile the Java Source Files
+
+Open a terminal inside the project directory and execute:
+
+bash
+javac ChatServer.java ChatClient.java
+
+
+This generates the corresponding .class bytecode files.
+
+Step 3: Start the Chat Server
+
+Run the server first:
+
+bash
+java ChatServer
+
+
+Expected Output:
+
+text
+Chat Server starting on port 12345...
+
+
+The server is now ready to accept multiple client connections.
+
+Step 4: Connect Multiple Clients
+
+Open separate terminal windows and execute the following command in each terminal:
+
+bash
+java ChatClient
+
+
+Terminal Window 1 – Alice
+
+text
+Connecting to chat server at 127.0.0.1:12345
 Enter your username: Alice
+
 Connected! Type messages below (type 'exit' to quit):
-Terminal Window 2 (User: Bob):Bashjava ChatClient
-PlaintextConnecting to chat server at 127.0.0.1:12345
+
+
+Terminal Window 2 – Bob
+
+text
+Connecting to chat server at 127.0.0.1:12345
 Enter your username: Bob
+
 Connected! Type messages below (type 'exit' to quit):
-💬 Usage ExampleTerminal / WindowUser Input / ActionOutput DisplayedServerListening...New client connected: /127.0.0.1:54321Broadcasting: 
-Alice has joined the chat!Client 1 (Alice)Hello everyone!Connected! Type messages below...[Bob]: Hey Alice!
-Client 2 (Bob)Hey Alice!Alice has joined the chat![Alice]: Hello everyone!To gracefully disconnect a client, 
-type exit in the client's terminal session. The server will automatically detach the socket connection and broadcast the departure to remaining active clients.
-🔐 Technical Highlights & Best PracticesThread Safety: Uses ConcurrentHashMap.newKeySet() to handle concurrent client addition/removal without requiring explicit locked synchronizations.
-Resource Management: Implements try-with-resources blocks to ensure automatic closure of Socket, BufferedReader, and PrintWriter resources upon termination.
-Daemon Threading: Configures the client message receiver thread with receiverThread.setDaemon(true) ensuring clean application teardown when the main console loop terminates.
-Graceful Teardown: Handles stream terminations (null lines from socket closed by peer) safely inside finally cleanup blocks.
+
+
+Both clients are now connected to the same chat server and can exchange messages.
+
+💬 Usage Example
+
+The following example demonstrates real-time communication between two clients.
+
+Terminal / User	Input / Action	Output
+Server	Listening...	Chat Server starting on port 12345...
+Alice	Connects	Alice has joined the chat!
+Bob	Connects	Bob has joined the chat!
+Alice	Hello everyone!	Message sent to Bob
+Bob	Hey Alice!	Message sent to Alice
+
+Alice's Terminal:
+
+text
+Connected! Type messages below (type 'exit' to quit):
+
+Hey Alice!
+
+
+Bob's Terminal:
+
+text
+Connected! Type messages below (type 'exit' to quit):
+
+[Alice]: Hello everyone!
+
+
+Server Terminal:
+
+text
+Chat Server starting on port 12345...
+New client connected: /127.0.0.1:54321
+New client connected: /127.0.0.1:54322
+Broadcasting: Hello everyone!
+Broadcasting: Hey Alice!
+
+Disconnecting from the Chat
+
+To gracefully disconnect a client, type:
+
+text
+exit
+
+
+The client will close its connection, and the server will remove the disconnected client from its active client registry and notify the remaining participants.
+
+🔐 Technical Highlights & Best Practices
+1. Multithreading
+Uses Java Thread to handle multiple client connections concurrently.
+Each client is managed by an independent ClientHandler thread.
+A separate receiver thread handles incoming messages on the client side.
+2. Thread Safety
+Uses ConcurrentHashMap.newKeySet() for thread-safe client registration and removal.
+Supports concurrent client connections and message broadcasting.
+3. TCP Socket Communication
+Uses ServerSocket to accept incoming connections.
+Uses Socket for client-server communication.
+Uses BufferedReader and PrintWriter for text-based message transmission.
+4. Resource Management
+Uses try-with-resources to automatically close sockets and streams.
+Prevents resource leaks during normal execution and unexpected disconnections.
+5. Daemon Threading
+Configures the client receiver thread using:
+java
+receiverThread.setDaemon(true);
+
+
+This allows the application to terminate when the main thread finishes.
+
+6. Graceful Teardown
+Handles unexpected client disconnections.
+Detects end-of-stream conditions using readLine().
+Removes disconnected clients from the active registry.
+Closes socket connections and associated resources safely.
+🛠️ Technologies Used
+Technology	Purpose
+Java	Core programming language
+java.net.Socket	Client-server communication
+java.net.ServerSocket	Accepting client connections
+Java Threads	Concurrent client handling
+ConcurrentHashMap	Thread-safe client management
+BufferedReader	Reading incoming messages
+PrintWriter	Sending outgoing messages
+TCP/IP	Reliable network communication
+🎯 Learning Outcomes
+
+By developing this project, you can gain practical experience in:
+
+Java socket programming.
+Client-server architecture.
+Multithreading and concurrency.
+TCP/IP communication.
+Thread-safe data structures.
+Real-time message broadcasting.
+Exception handling and resource management.
+Concurrent connection management.
+🔮 Future Enhancements
+
+Possible improvements for future versions include:
+
+Private messaging between users.
+Group chat rooms.
+Online user list.
+Message timestamps.
+Graphical User Interface (GUI) using Java Swing or JavaFX.
+User authentication and registration.
+File sharing between clients.
+Message history and database integration.
+Improved scalability using thread pools.
+👨‍💻 Author
+
+Developed as a Java networking and multithreading project to demonstrate real-time client-server communication using core Java technologies.
+
+If you find this project useful, consider giving the repository a ⭐ on GitHub!
